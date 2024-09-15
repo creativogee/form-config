@@ -1,0 +1,33 @@
+{
+  "name": "@crudmates/form-config",
+  "version": "0.0.3",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./src/types",
+  "files": [
+    "dist",
+    "src/types"
+  ],
+  "description": "A super flexible tool for creating custom dynamic forms",
+  "author": "Gbenga Omowole <omowole.gbenga@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/creativogee/form-config.git"
+  },
+  "scripts": {
+    "build": "npm run clean && tsc",
+    "prepublishOnly": "npm run build",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "form",
+    "react-hook-form",
+    "zod",
+    "typescript"
+  ],
+  "homepage": "https://github.com/creativogee/form-config#readme",
+  "devDependencies": {
+    "typescript": "^5.1.3"
+  }
+}
