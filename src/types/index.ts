@@ -16,7 +16,7 @@ export interface Option {
   id?: string;
   value: string;
   label: string;
-  total?: number;
+  weight?: number;
 }
 
 export type Entry = string | number | string[];
@@ -72,6 +72,7 @@ export interface Item {
   default?: string | number | boolean | string[];
   style?: string;
   disabled?: boolean;
+  hidden?: boolean;
   conditions?: {
     enable?: Condition;
     show?: Condition;

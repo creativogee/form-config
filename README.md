@@ -238,6 +238,5 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## 💖 Support the Project
 
-If you find this package useful, consider [buying us a coffee](https://www.paypal.com/donate?hosted_button_id=Z9NGDEGSC3LPY)!
+Love this package? Show your support by giving us a ⭐ on GitHub! Feeling extra generous? You can [buy us coffee](https://www.paypal.com/donate?hosted_button_id=Z9NGDEGSC3LPY) to keep us fueled for more coding adventures!☕️
 
-Stay tuned for more exciting updates and features! 🚀

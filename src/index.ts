@@ -174,15 +174,15 @@ function evaluateSection(section: Section) {
   return section.items.reduce(
     (acc, item) => {
       const entry = item.entry || item.default;
-      let itemTotal = 0;
+      let selectedOptionWeight = 0;
       const itemWeight = item?.weight ?? 0;
 
       if (item.type === 'select' && entry) {
         const selectedOption = item?.options?.find((option) => option.value === entry);
-        itemTotal = selectedOption ? selectedOption?.total ?? 0 : 0;
+        selectedOptionWeight = selectedOption ? selectedOption?.weight ?? 0 : 0;
       } else if (item.type === 'group' && Array.isArray(entry)) {
         const selectedSubItems = item?.subItems?.filter((subItem) => entry.includes(subItem.name));
-        itemTotal = selectedSubItems
+        selectedOptionWeight = selectedSubItems
           ? selectedSubItems.reduce(
               (sum, selectedSubItem) => sum + (selectedSubItem?.weight ?? 0),
               0,
@@ -196,13 +196,13 @@ function evaluateSection(section: Section) {
         const applicableTier =
           item.tiers.find((tier) => entry <= tier.maxValue) || item.tiers[item.tiers.length - 1];
         const rate = applicableTier?.rate ?? 1;
-        itemTotal = itemWeight * rate;
+        selectedOptionWeight = itemWeight * rate;
       } else if (entry !== undefined) {
-        itemTotal = itemWeight;
+        selectedOptionWeight = itemWeight;
       }
 
       return {
-        total: acc.total + itemTotal,
+        total: acc.total + selectedOptionWeight,
         weight: acc.weight + itemWeight,
       };
     },
