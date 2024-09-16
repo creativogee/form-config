@@ -13,7 +13,8 @@ export interface Option {
   upvote?: boolean;
   downvote?: boolean;
   novote?: boolean;
-  name: string;
+  id?: string;
+  value: string;
   label: string;
   total?: number;
 }
@@ -37,6 +38,7 @@ export interface Item {
   label: string;
   value?: string;
   description?: string;
+  devNote?: string;
   placeholder?: string;
   type:
     | 'text'
@@ -64,15 +66,17 @@ export interface Item {
     | 'week'
     | 'textarea'
     | 'group';
-  subType?: 'scale' | 'checkbox' | 'file' 
+  subType?: string;
   weight?: number;
   tiers?: Tier[];
   default?: string | number | boolean | string[];
   style?: string;
   disabled?: boolean;
-  condition?: Condition;
-  dataSource?: 'options' | 'url';
-  extension?: string;
+  conditions?: {
+    enable?: Condition;
+    show?: Condition;
+  };
+  dataSource?: 'options' | 'url' | 'arbitrary';
   url?: string;
   template?: string;
   validation?: Validation;
@@ -94,8 +98,6 @@ export interface Condition extends MixedCondition {
   field?: string;
   operator?: 'EQUAL' | 'NOT_EQUAL' | 'NOT_EMPTY' | 'EMPTY';
   value?: string;
-  visible?: MixedCondition;
-  disable?: MixedCondition;
 }
 
 export interface Section<T = Item> {
@@ -202,13 +204,11 @@ export declare function getChangeGroup({
   setGroup,
 }: ChangeGroupOptions): (value: string) => void;
 
-
 /**
- * 
+ *
  * @param formState The current state of the form
  * @param config The form layout configuration
  * @returns A prepared Config object with updated entries
  * @description The prepare function takes the current form state and the form layout configuration, and returns a new Config object. This new object includes the entries from the form state for each item that exists in the formState. It also preserves any existing comments and media for the items. The function is particularly useful for processing form data before submission or for preparing a partial update of the configuration.
  */
 export declare function prepare(formState: Record<string, any>, config: Config): Config;
-

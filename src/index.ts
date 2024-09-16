@@ -67,10 +67,10 @@ export function compose(config: Config, sections: Partial<Section<Partial<Item>>
 }
 
 function validateItem(item: Item, entry: Entry, formData: Record<string, Entry>) {
-  const { validation, condition } = item;
+  const { validation, conditions } = item;
 
   // Check condition, if applicable
-  if (condition && !checkCondition(condition, formData)) {
+  if (conditions && !checkCondition(conditions.show, formData)) {
     return; // Skip validation if condition is not met
   }
 
@@ -113,13 +113,13 @@ export function decompose(
         // Populate the value field if 'value' is truthy
         if (allow.includes('value') && item.entry !== undefined) {
           if (item.type === 'select' || item.type === 'radio') {
-            const selectedOption = item.options?.find((opt) => opt.name === item.entry);
+            const selectedOption = item.options?.find((opt) => opt.value === item.entry);
             if (selectedOption) {
               decomposedItem.value = selectedOption.label;
             }
           } else if (item.type === 'group' && Array.isArray(item.entry)) {
             const selectedLabels = item.options
-              ?.filter((opt) => (item.entry as string[]).includes(opt.name))
+              ?.filter((opt) => (item.entry as string[]).includes(opt.value))
               .map((opt) => opt.label);
             decomposedItem.value = selectedLabels?.join(', ');
           } else {
@@ -178,7 +178,7 @@ function evaluateSection(section: Section) {
       const itemWeight = item?.weight ?? 0;
 
       if (item.type === 'select' && entry) {
-        const selectedOption = item?.options?.find((option) => option.name === entry);
+        const selectedOption = item?.options?.find((option) => option.value === entry);
         itemTotal = selectedOption ? selectedOption?.total ?? 0 : 0;
       } else if (item.type === 'group' && Array.isArray(entry)) {
         const selectedSubItems = item?.subItems?.filter((subItem) => entry.includes(subItem.name));
@@ -215,20 +215,6 @@ export function evaluateCondition(condition?: Condition, formState?: Record<stri
     return true;
   }
 
-  if ('visible' in condition || 'disable' in condition) {
-    const result: { visible?: boolean; disable?: boolean } = {};
-
-    if (condition.visible) {
-      result.visible = checkCondition(condition.visible, formState);
-    }
-
-    if (condition.disable) {
-      result.disable = checkCondition(condition.disable, formState);
-    }
-
-    return result;
-  }
-
   return checkCondition(condition, formState);
 }
 
@@ -263,7 +249,13 @@ export function stage(config: Config<Section<Item>>): Record<string, any> {
       if (item.default !== undefined) {
         acc[item.name] = item.default;
       } else {
-        acc[item.name] = item.type === 'group' ? [] : '';
+        acc[item.name] = item.type === 'group' && /list/i.test(item.subType) ? [] : '';
+      }
+
+      if (item.subItems && item.type === 'group' && !/list/i.test(item.subType)) {
+        item.subItems.forEach((subItem) => {
+          acc[subItem.name] = subItem.default ?? '';
+        });
       }
     });
     return acc;
@@ -310,7 +302,7 @@ export function validate(config: Config) {
   }
 
   const optionNames = config.sections.map((section) =>
-    section.items.map((item) => item?.options?.map((option) => option.name)),
+    section.items.map((item) => item?.options?.map((option) => option.value)),
   );
   const optionNamesFlat = optionNames.flat().flat();
   const optionNamesSet = new Set(optionNamesFlat);
@@ -342,4 +334,13 @@ export function prepare(formState: Record<string, any>, config: Config): Config 
       }),
     })),
   };
+}
+
+export function getYears(startYear: number, endYear?: number) {
+  const currentYear = new Date().getFullYear();
+  const years = [];
+  for (let year = startYear; year <= (endYear ?? currentYear); year++) {
+    years.push(year);
+  }
+  return years;
 }

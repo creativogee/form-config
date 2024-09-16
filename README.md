@@ -77,24 +77,24 @@ const formConfig: Config = {
       label: 'Personal Information',
       items: [
         {
-          name: 'name',
           label: 'Name',
+          name: 'name',
           type: 'text',
           validation: {
             required: true,
           },
         },
         {
-          name: 'email',
           label: 'Email',
+          name: 'email',
           type: 'email',
           validation: {
             required: true,
           },
         },
         {
-          name: 'age',
           label: 'Age',
+          name: 'age',
           type: 'number',
           validation: {
             required: true,
@@ -102,29 +102,29 @@ const formConfig: Config = {
           },
         },
         {
-          name: 'country',
           label: 'Country',
+          name: 'country',
           type: 'select',
           options: [
-            { name: 'us', label: 'United States' },
-            { name: 'uk', label: 'United Kingdom' },
-            { name: 'ca', label: 'Canada' },
+            { label: 'United States', value: 'us' },
+            { label: 'United Kingdom', value: 'uk' },
+            { label: 'Canada', value: 'ca' },
           ],
           validation: {
             required: true,
           },
         },
         {
-          name: 'terms',
           label: 'I accept the terms and conditions',
+          name: 'terms',
           type: 'checkbox',
           validation: {
             required: true,
           },
         },
         {
-          name: 'submit',
           label: 'Submit',
+          name: 'submit',
           type: 'button',
         }
       ],
@@ -174,8 +174,6 @@ const FormInput: React.FC<{ field: any; item: Item; error: any }> = ({ field, it
 
 // Main form component
 const Form: React.FC = () => {
-  const [result, setResult] = useState<any>(null);
-
   const {
     control,
     handleSubmit,
