@@ -279,10 +279,9 @@ export function checkCondition(condition: Condition, formState: Record<string, a
 export function stage(config: Config<Section<Item>>): Record<string, any> {
   return config.sections.reduce((acc, section) => {
     section.items.forEach((item) => {
-      if (item.type === 'group' && !/list/i.test(item.subType)) {
+      if ((item.type === 'group' && !/list/i.test(item.subType)) || item.type === 'file') {
         return;
       }
-
       if (item.default !== undefined) {
         acc[item.name] = item.default;
       } else {
@@ -291,7 +290,9 @@ export function stage(config: Config<Section<Item>>): Record<string, any> {
 
       if (item.subItems && item.type === 'group' && /list/i.test(item.subType)) {
         item.subItems.forEach((subItem) => {
-          acc[subItem.name] = subItem.default ?? '';
+          if (subItem.type !== 'file') {
+            acc[subItem.name] = subItem.default ?? '';
+          }
         });
       }
     });
