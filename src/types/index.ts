@@ -36,7 +36,7 @@ export interface Item {
   //
   tabIndex?: number;
   label: string;
-  value?: string;
+  value?: any
   description?: string;
   devNote?: string;
   placeholder?: string;
@@ -128,7 +128,7 @@ export interface DecomposeOptions {
 export interface ChangeGroupOptions {
   item: Item;
   group: Record<string, string[]>;
-  setGroup: (group: Record<string, string[]>) => void;
+  setGroup: (group: Record<string, any[]>) => void;
 }
 
 /**

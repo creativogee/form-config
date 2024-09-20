@@ -17,6 +17,41 @@ export function compose(config: Config, sections: Partial<Section<Partial<Item>>
     sections: [],
   };
 
+  function processItems(
+    items: Item[],
+    resultItems: Partial<Item>[],
+    formData: Record<string, any>,
+  ): Item[] {
+    return items.map((item) => {
+      const resultItem = resultItems.find((resultItem) => resultItem.name === item.name);
+
+      if (!resultItem) {
+        throw new Error(`Result missing for field "${item.name}".`);
+      }
+
+      validateItem(item, resultItem.entry, formData);
+
+      const combinedItem: Item = {
+        ...item,
+        entry: resultItem.entry,
+      };
+
+      if (resultItem?.comment) {
+        combinedItem.comment = resultItem.comment;
+      }
+
+      if (resultItem?.media) {
+        combinedItem.media = resultItem.media;
+      }
+
+      if (item.subItems && resultItem.subItems) {
+        combinedItem.subItems = processItems(item.subItems, resultItem.subItems, formData);
+      }
+
+      return combinedItem;
+    });
+  }
+
   config.sections.forEach((section: Section) => {
     const combinedSection: Section = {
       name: section.name,
@@ -32,33 +67,15 @@ export function compose(config: Config, sections: Partial<Section<Partial<Item>>
 
     const formData: Record<string, any> = resultSection.items.reduce((acc, item) => {
       acc[item.name] = item.entry;
+      if (item.subItems) {
+        item.subItems.forEach((subItem) => {
+          acc[subItem.name] = subItem.entry;
+        });
+      }
       return acc;
     }, {});
 
-    section.items.forEach((item: Item) => {
-      const resultItem = resultSection.items.find((resultItem) => resultItem.name === item.name);
-
-      if (!resultItem) {
-        throw new Error(`Result missing for field "${item.name}".`);
-      }
-
-      validateItem(item, resultItem.entry, formData);
-
-      const combinedItem = {
-        ...item,
-        entry: resultItem.entry,
-      };
-
-      if (resultItem?.comment) {
-        combinedItem.comment = resultItem.comment;
-      }
-
-      if (resultItem?.media) {
-        combinedItem.media = resultItem.media;
-      }
-
-      combinedSection.items.push(combinedItem);
-    });
+    combinedSection.items = processItems(section.items, resultSection.items, formData);
 
     combined.sections.push(combinedSection);
   });
@@ -117,13 +134,19 @@ export function decompose(
             if (selectedOption) {
               decomposedItem.value = selectedOption.label;
             }
-          } else if (item.type === 'group' && Array.isArray(item.entry)) {
+          } else if (
+            item.type === 'group' &&
+            Array.isArray(item.entry) &&
+            // cannot decompose if entry is neither string or string array
+            item.entry.every((entry) => typeof entry === 'string')
+          ) {
             const selectedLabels = item.options
               ?.filter((opt) => (item.entry as string[]).includes(opt.value))
               .map((opt) => opt.label);
+
             decomposedItem.value = selectedLabels?.join(', ');
           } else {
-            decomposedItem.value = item.entry as string;
+            decomposedItem.value = item.entry;
           }
         }
 
@@ -181,7 +204,17 @@ function evaluateSection(section: Section) {
         const selectedOption = item?.options?.find((option) => option.value === entry);
         selectedOptionWeight = selectedOption ? selectedOption?.weight ?? 0 : 0;
       } else if (item.type === 'group' && Array.isArray(entry)) {
-        const selectedSubItems = item?.subItems?.filter((subItem) => entry.includes(subItem.name));
+        let selectedSubItems: Item[];
+
+        const isStringArray = entry.every((item) => typeof item === 'string');
+
+        if (isStringArray) {
+          selectedSubItems = item?.subItems?.filter((subItem) => entry.includes(subItem.name));
+        } else {
+          // it will be assumed that each item in the array is an object carry the same weight
+          selectedSubItems = item.subItems.slice(0, entry.length);
+        }
+
         selectedOptionWeight = selectedSubItems
           ? selectedSubItems.reduce(
               (sum, selectedSubItem) => sum + (selectedSubItem?.weight ?? 0),
@@ -246,13 +279,17 @@ export function checkCondition(condition: Condition, formState: Record<string, a
 export function stage(config: Config<Section<Item>>): Record<string, any> {
   return config.sections.reduce((acc, section) => {
     section.items.forEach((item) => {
+      if (item.type === 'group' && !/list/i.test(item.subType)) {
+        return;
+      }
+
       if (item.default !== undefined) {
         acc[item.name] = item.default;
       } else {
         acc[item.name] = item.type === 'group' && /list/i.test(item.subType) ? [] : '';
       }
 
-      if (item.subItems && item.type === 'group' && !/list/i.test(item.subType)) {
+      if (item.subItems && item.type === 'group' && /list/i.test(item.subType)) {
         item.subItems.forEach((subItem) => {
           acc[subItem.name] = subItem.default ?? '';
         });
@@ -262,20 +299,57 @@ export function stage(config: Config<Section<Item>>): Record<string, any> {
   }, {});
 }
 
+function deepEqual(obj1: any, obj2: any): boolean {
+  if (obj1 === obj2) return true;
+
+  if (typeof obj1 !== 'object' || typeof obj2 !== 'object' || obj1 === null || obj2 === null) {
+    return false;
+  }
+
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  if (keys1.length !== keys2.length) return false;
+
+  for (const key of keys1) {
+    if (!keys2.includes(key) || !deepEqual(obj1[key], obj2[key])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 export const getChangeGroup =
   ({ item, group, setGroup }: ChangeGroupOptions) =>
-  (value: string) => {
+  (value: any) => {
+    const isObject = (val: any) => typeof val === 'object' && val !== null;
+
     if (group[item.name]) {
-      if (group[item.name].includes(value)) {
-        setGroup({
-          ...group,
-          [item.name]: group[item.name].filter((item) => item !== value),
-        });
-      } else {
-        setGroup({
-          ...group,
-          [item.name]: [...group[item.name], value],
-        });
+      if (isObject(value)) {
+        if (group[item.name].some((groupItem: any) => deepEqual(groupItem, value))) {
+          setGroup({
+            ...group,
+            [item.name]: group[item.name].filter((groupItem: any) => !deepEqual(groupItem, value)),
+          });
+        } else {
+          setGroup({
+            ...group,
+            [item.name]: [...group[item.name], value],
+          });
+        }
+      } else if (typeof value === 'string') {
+        if (group[item.name].includes(value)) {
+          setGroup({
+            ...group,
+            [item.name]: group[item.name].filter((item) => item !== value),
+          });
+        } else {
+          setGroup({
+            ...group,
+            [item.name]: [...group[item.name], value],
+          });
+        }
       }
     } else {
       setGroup({
@@ -334,13 +408,4 @@ export function prepare(formState: Record<string, any>, config: Config): Config 
       }),
     })),
   };
-}
-
-export function getYears(startYear: number, endYear?: number) {
-  const currentYear = new Date().getFullYear();
-  const years = [];
-  for (let year = startYear; year <= (endYear ?? currentYear); year++) {
-    years.push(year);
-  }
-  return years;
 }
