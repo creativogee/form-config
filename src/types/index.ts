@@ -22,9 +22,49 @@ export interface Option {
 export type Entry = string | number | string[];
 
 export interface Tier {
-  maxValue: number;
+  maxValue: string;
   rate: number;
 }
+
+export type ItemType = 
+  | 'text'
+  | 'number'
+  | 'password'
+  | 'select'
+  | 'date'
+  | 'checkbox'
+  | 'radio'
+  | 'email'
+  | 'tel'
+  | 'url'
+  | 'hidden'
+  | 'file'
+  | 'button'
+  | 'color'
+  | 'datetime-local'
+  | 'image'
+  | 'month'
+  | 'range'
+  | 'reset'
+  | 'search'
+  | 'submit'
+  | 'time'
+  | 'week'
+  | 'textarea'
+  | 'group';
+
+export type MediaType = 'image' | 'video' | 'audio';
+
+export type ConditionOperator = 
+  | 'EQUAL'
+  | 'NOT_EQUAL'
+  | 'EMPTY'
+  | 'NOT_EMPTY';
+
+export type DataSource = 
+  | 'options'
+  | 'url'
+  | 'arbitrary';
 
 export interface Item {
   name: string; // must be unique
@@ -36,36 +76,11 @@ export interface Item {
   //
   tabIndex?: number;
   label: string;
-  value?: any
+  value?: any;
   description?: string;
   devNote?: string;
   placeholder?: string;
-  type:
-    | 'text'
-    | 'number'
-    | 'password'
-    | 'select'
-    | 'date'
-    | 'checkbox'
-    | 'radio'
-    | 'email'
-    | 'tel'
-    | 'url'
-    | 'hidden'
-    | 'file'
-    | 'button'
-    | 'color'
-    | 'datetime-local'
-    | 'image'
-    | 'month'
-    | 'range'
-    | 'reset'
-    | 'search'
-    | 'submit'
-    | 'time'
-    | 'week'
-    | 'textarea'
-    | 'group';
+  type: ItemType;
   subType?: string;
   weight?: number;
   tiers?: Tier[];
@@ -77,7 +92,7 @@ export interface Item {
     enable?: Condition;
     show?: Condition;
   };
-  dataSource?: 'options' | 'url' | 'arbitrary';
+  dataSource?: DataSource;
   url?: string;
   template?: string;
   validation?: Validation;
@@ -86,7 +101,7 @@ export interface Item {
 }
 
 export interface Media {
-  type: 'image' | 'video' | 'audio';
+  type: MediaType;
   url: string;
 }
 
@@ -97,7 +112,7 @@ export interface MixedCondition {
 
 export interface Condition extends MixedCondition {
   field?: string;
-  operator?: 'EQUAL' | 'NOT_EQUAL' | 'NOT_EMPTY' | 'EMPTY';
+  operator?: ConditionOperator;
   value?: string;
 }
 

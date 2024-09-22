@@ -227,7 +227,8 @@ function evaluateSection(section: Section) {
         Array.isArray(item.tiers)
       ) {
         const applicableTier =
-          item.tiers.find((tier) => entry <= tier.maxValue) || item.tiers[item.tiers.length - 1];
+          item.tiers.find((tier) => entry <= Number(tier.maxValue)) ||
+          item.tiers[item.tiers.length - 1];
         const rate = applicableTier?.rate ?? 1;
         selectedOptionWeight = itemWeight * rate;
       } else if (entry !== undefined) {
