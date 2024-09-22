@@ -228,3 +228,19 @@ export declare function getChangeGroup({
  * @description The prepare function takes the current form state and the form layout configuration, and returns a new Config object. This new object includes the entries from the form state for each item that exists in the formState. It also preserves any existing comments and media for the items. The function is particularly useful for processing form data before submission or for preparing a partial update of the configuration.
  */
 export declare function prepare(formState: Record<string, any>, config: Config): Config;
+
+/**
+ * Translates the labels in the given configuration using the provided translation function.
+ *
+ * @param config - The configuration object containing sections and items, each with a label to be translated.
+ * @param t - A translation function that takes a key (string) and returns the translated string (string).
+ * @returns A new configuration object with all labels translated.
+ */
+export declare function translate(config: Config, t: (key: string) => string): Config;
+
+/**
+ *  Converts the given configuration object to a string.
+ * @param config - The configuration object to be converted to a string.
+ * @param depth - The depth of the configuration object to be converted to a string.
+ */
+export declare function stringify(config: Config, depth?: number): string;

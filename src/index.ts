@@ -283,13 +283,14 @@ export function stage(config: Config<Section<Item>>): Record<string, any> {
       if ((item.type === 'group' && !/list/i.test(item.subType)) || item.type === 'file') {
         return;
       }
+
       if (item.default !== undefined) {
         acc[item.name] = item.default;
       } else {
         acc[item.name] = item.type === 'group' && /list/i.test(item.subType) ? [] : '';
       }
 
-      if (item.subItems && item.type === 'group' && /list/i.test(item.subType)) {
+      if (item.subItems && item.type === 'group' && !/list/i.test(item.subType)) {
         item.subItems.forEach((subItem) => {
           if (subItem.type !== 'file') {
             acc[subItem.name] = subItem.default ?? '';
@@ -410,4 +411,27 @@ export function prepare(formState: Record<string, any>, config: Config): Config 
       }),
     })),
   };
+}
+
+export function translate(config: Config, t: (key: string) => string): Config {
+  return {
+    ...config,
+    label: t(config.name),
+    sections: config.sections.map((section) => ({
+      ...section,
+      label: t(section.name),
+      items: section.items.map((item) => ({
+        ...item,
+        label: t(item.name),
+      })),
+    })),
+  };
+}
+
+export function stringify(config: Config, depth: number = 1): string {
+  if (depth === 2) {
+    return JSON.stringify(JSON.stringify(config));
+  }
+
+  return JSON.stringify(config);
 }

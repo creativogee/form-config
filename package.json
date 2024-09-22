@@ -16,7 +16,7 @@
     "url": "git+https://github.com/creativogee/form-config.git"
   },
   "scripts": {
-    "build": "rollup -c",
+    "build": "rm -rf dist && rollup -c",
     "prepublishOnly": "npm run build",
     "clean": "rm -rf dist"
   },
