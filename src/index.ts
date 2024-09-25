@@ -10,7 +10,11 @@ import {
 
 export * from './types/index.js';
 
-export function compose(config: Config, sections: Partial<Section<Partial<Item>>>[]) {
+export function compose(
+  config: Config,
+  sections: Partial<Section<Partial<Item>>>[],
+  options?: { validate?: boolean },
+) {
   const combined: Config = {
     name: config.name,
     label: config.label,
@@ -29,7 +33,9 @@ export function compose(config: Config, sections: Partial<Section<Partial<Item>>
         throw new Error(`Result missing for field "${item.name}".`);
       }
 
-      validateItem(item, resultItem.entry, formData);
+      if (options?.validate) {
+        validateItem(item, resultItem.entry, formData);
+      }
 
       const combinedItem: Item = {
         ...item,
@@ -44,7 +50,7 @@ export function compose(config: Config, sections: Partial<Section<Partial<Item>>
         combinedItem.media = resultItem.media;
       }
 
-      if (item.subItems && resultItem.subItems) {
+      if (item?.subItems && resultItem?.subItems) {
         combinedItem.subItems = processItems(item.subItems, resultItem.subItems, formData);
       }
 
@@ -67,7 +73,7 @@ export function compose(config: Config, sections: Partial<Section<Partial<Item>>
 
     const formData: Record<string, any> = resultSection.items.reduce((acc, item) => {
       acc[item.name] = item.entry;
-      if (item.subItems) {
+      if (item?.subItems) {
         item.subItems.forEach((subItem) => {
           acc[subItem.name] = subItem.entry;
         });
@@ -84,10 +90,10 @@ export function compose(config: Config, sections: Partial<Section<Partial<Item>>
 }
 
 function validateItem(item: Item, entry: Entry, formData: Record<string, Entry>) {
-  const { validation, conditions } = item;
+  const { validation, conditions } = item ?? {};
 
   // Check condition, if applicable
-  if (conditions && !checkCondition(conditions.show, formData)) {
+  if (conditions?.show && !checkCondition(conditions.show, formData)) {
     return; // Skip validation if condition is not met
   }
 
@@ -128,7 +134,7 @@ export function decompose(
         ) as Partial<Item>;
 
         // Populate the value field if 'value' is truthy
-        if (allow.includes('value') && item.entry !== undefined) {
+        if (allow.includes('value') && item?.entry !== undefined) {
           if (item.type === 'select' || item.type === 'radio') {
             const selectedOption = item.options?.find((opt) => opt.value === item.entry);
             if (selectedOption) {
@@ -222,7 +228,7 @@ function evaluateSection(section: Section) {
             )
           : 0;
       } else if (
-        item.subType === 'scale' &&
+        item?.subType === 'scale' &&
         typeof entry === 'number' &&
         Array.isArray(item.tiers)
       ) {
@@ -253,13 +259,13 @@ export function evaluateCondition(condition?: Condition, formState?: Record<stri
 }
 
 export function checkCondition(condition: Condition, formState: Record<string, any>): boolean {
-  if (condition.and) {
+  if (condition?.and) {
     return condition.and.every((cond) => checkCondition(cond, formState));
   }
-  if (condition.or) {
+  if (condition?.or) {
     return condition.or.some((cond) => checkCondition(cond, formState));
   }
-  if (condition.field && condition.operator) {
+  if (condition?.field && condition?.operator) {
     const fieldValue = formState[condition.field];
     switch (condition.operator) {
       case 'EQUAL':
@@ -280,17 +286,17 @@ export function checkCondition(condition: Condition, formState: Record<string, a
 export function stage(config: Config<Section<Item>>): Record<string, any> {
   return config.sections.reduce((acc, section) => {
     section.items.forEach((item) => {
-      if ((item.type === 'group' && !/list/i.test(item.subType)) || item.type === 'file') {
+      if ((item.type === 'group' && !/list/i.test(item?.subType)) || item.type === 'file') {
         return;
       }
 
-      if (item.default !== undefined) {
+      if (item?.default !== undefined) {
         acc[item.name] = item.default;
       } else {
         acc[item.name] = item.type === 'group' && /list/i.test(item.subType) ? [] : '';
       }
 
-      if (item.subItems && item.type === 'group' && !/list/i.test(item.subType)) {
+      if (item?.subItems && item.type === 'group' && !/list/i.test(item?.subType)) {
         item.subItems.forEach((subItem) => {
           if (subItem.type !== 'file') {
             acc[subItem.name] = subItem.default ?? '';
@@ -405,8 +411,8 @@ export function prepare(formState: Record<string, any>, config: Config): Config 
         if (formState.hasOwnProperty(item.name)) {
           preparedItem.entry = formState[item.name];
         }
-        if (item.comment) preparedItem.comment = item.comment;
-        if (item.media) preparedItem.media = item.media;
+        if (item?.comment) preparedItem.comment = item.comment;
+        if (item?.media) preparedItem.media = item.media;
         return preparedItem as Item;
       }),
     })),
