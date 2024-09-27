@@ -26,7 +26,7 @@ export interface Tier {
   rate: number;
 }
 
-export type ItemType = 
+export type ItemType =
   | 'text'
   | 'number'
   | 'password'
@@ -55,16 +55,9 @@ export type ItemType =
 
 export type MediaType = 'image' | 'video' | 'audio';
 
-export type ConditionOperator = 
-  | 'EQUAL'
-  | 'NOT_EQUAL'
-  | 'EMPTY'
-  | 'NOT_EMPTY';
+export type ConditionOperator = 'EQUAL' | 'NOT_EQUAL' | 'EMPTY' | 'NOT_EMPTY';
 
-export type DataSource = 
-  | 'options'
-  | 'url'
-  | 'arbitrary';
+export type DataSource = 'options' | 'url' | 'arbitrary';
 
 export interface Item {
   name: string; // must be unique
@@ -181,6 +174,7 @@ export declare function evaluate(config: Config, factor?: number): Config;
 export declare function compose(
   config: Config,
   sections: Partial<Section<Partial<Item>>>[],
+  options?: { validate?: boolean },
 ): Config<Section<Item>>;
 
 /**
