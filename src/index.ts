@@ -89,6 +89,30 @@ export function compose(
   return combined;
 }
 
+function validateFileExtension(filename: string, accept: string): boolean {
+  const fileExtension = filename.split('.').pop()?.toLowerCase();
+  if (!fileExtension) return false;
+
+  const patterns = accept.split(',').map((pattern) => pattern.trim());
+
+  for (const pattern of patterns) {
+    if (pattern.startsWith('.')) {
+      // Specific extension
+      if (fileExtension === pattern.slice(1).toLowerCase()) {
+        return true;
+      }
+    } else if (pattern.includes('/*')) {
+      // Wildcard pattern
+      const [type] = pattern.split('/');
+      if (filename.startsWith(type)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 function validateItem(item: Item, entry: Entry, formData: Record<string, Entry>) {
   const { validation, conditions } = item ?? {};
 
@@ -115,6 +139,17 @@ function validateItem(item: Item, entry: Entry, formData: Record<string, Entry>)
   // Allowed values validation (for selects)
   if (validation?.allowedValues && !validation.allowedValues.includes(entry as string)) {
     throw new Error(`Field "${item.name}" must be one of ${validation.allowedValues.join(', ')}.`);
+  }
+
+  // Allowed extension validation (for files)
+  if (validation?.accept && item.type === 'file') {
+    if (typeof entry === 'string') {
+      if (!validateFileExtension(entry, validation.accept)) {
+        throw new Error(`Field "${item.name}" must be of type ${validation.accept}.`);
+      }
+    }
+
+    // TODO: if entry is not a string
   }
 }
 
@@ -194,8 +229,9 @@ export function evaluate(config: Config, factor = 100): Config {
   return {
     ...config,
     sections: sectionAnalysis,
+    weight,
     total,
-    ratio: parseFloat(ratio.toFixed(1)),
+    ratio: parseFloat(ratio.toFixed(2)),
   };
 }
 
@@ -207,8 +243,16 @@ function evaluateSection(section: Section) {
       const itemWeight = item?.weight ?? 0;
 
       if (item.type === 'select' && entry) {
-        const selectedOption = item?.options?.find((option) => option.value === entry);
-        selectedOptionWeight = selectedOption ? selectedOption?.weight ?? 0 : 0;
+        if (item.dataSource === 'options') {
+          const selectedOption = item?.options?.find((option) => option.value === entry);
+          if (selectedOption?.weight) {
+            selectedOptionWeight = selectedOption?.weight;
+          } else {
+            selectedOptionWeight = itemWeight;
+          }
+        } else {
+          selectedOptionWeight = itemWeight;
+        }
       } else if (item.type === 'group' && Array.isArray(entry)) {
         let selectedSubItems: Item[];
 
@@ -227,6 +271,10 @@ function evaluateSection(section: Section) {
               0,
             )
           : 0;
+
+        if (selectedOptionWeight === 0 && entry.length > 0) {
+          selectedOptionWeight = itemWeight;
+        }
       } else if (
         item?.subType === 'scale' &&
         typeof entry === 'number' &&
@@ -283,7 +331,9 @@ export function checkCondition(condition: Condition, formState: Record<string, a
   return false;
 }
 
-export function stage(config: Config<Section<Item>>): Record<string, any> {
+export function stage(config?: Config<Section<Item>>): Record<string, any> {
+  if (!config) return {};
+
   return config.sections.reduce((acc, section) => {
     section.items.forEach((item) => {
       if ((item.type === 'group' && !/list/i.test(item?.subType)) || item.type === 'file') {

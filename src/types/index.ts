@@ -6,7 +6,11 @@ export interface Validation {
   max?: number;
   pattern?: RegExp;
   allowedValues?: string[];
+  /**
+   * @deprecated Use accept instead
+   */
   allowedExtensions?: string[];
+  accept?: string;
 }
 
 export interface Option {
@@ -123,6 +127,7 @@ export interface Section<T = Item> {
 export interface Config<T = Section<Item>> {
   name: string;
   label: string;
+  weight?: number;
   total?: number;
   ratio?: number;
   comment?: string;
@@ -195,7 +200,7 @@ export declare function decompose(
  * @returns A record of field names and default values
  * @description The stage function takes a form layout configuration and returns a record of field names and default values. The default value is the default value of the field if it exists; otherwise, it is an empty string for text fields, an empty array for checkbox fields, or the first option for select fields. The stage function is useful for initializing form state with default values.
  */
-export declare function stage(config: Config<Section<Item>>): Record<string, any>;
+export declare function stage(config?: Config<Section<Item>>): Record<string, any>;
 
 /**
  *
