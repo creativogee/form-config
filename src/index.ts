@@ -5,7 +5,9 @@ import {
   DecomposeOptions,
   Entry,
   Item,
+  Option,
   Section,
+  Tier,
 } from './types/index.js';
 
 export * from './types/index.js';
@@ -238,55 +240,24 @@ export function evaluate(config: Config, factor = 100): Config {
 function evaluateSection(section: Section) {
   return section.items.reduce(
     (acc, item) => {
-      const entry = item.entry || item.default;
+      const {
+        entry = item.default,
+        weight: itemWeight = 0,
+        type,
+        subType,
+        options,
+        subItems,
+        tiers,
+        dataSource,
+      } = item;
       let selectedOptionWeight = 0;
-      const itemWeight = item?.weight ?? 0;
 
-      if (item.type === 'select' && entry) {
-        if (item.dataSource === 'options') {
-          const selectedOption = item?.options?.find((option) => option.value === entry);
-          if (selectedOption?.weight) {
-            selectedOptionWeight = selectedOption?.weight;
-          } else {
-            selectedOptionWeight = itemWeight;
-          }
-        } else {
-          selectedOptionWeight = itemWeight;
-        }
-      } else if (item.type === 'group' && Array.isArray(entry)) {
-        let selectedSubItems: Item[];
-
-        const isStringArray = entry.every((item) => typeof item === 'string');
-
-        if (isStringArray) {
-          selectedSubItems = item?.subItems?.filter((subItem) => entry.includes(subItem.name));
-        } else {
-          // it will be assumed that each item in the array is an object carry the same weight
-          selectedSubItems = item.subItems.slice(0, entry.length);
-        }
-
-        selectedOptionWeight = selectedSubItems
-          ? selectedSubItems.reduce(
-              (sum, selectedSubItem) => sum + (selectedSubItem?.weight ?? 0),
-              0,
-            )
-          : 0;
-
-        if (selectedOptionWeight === 0 && entry.length > 0) {
-          selectedOptionWeight = itemWeight;
-        }
-      } else if (
-        item?.subType === 'scale' &&
-        typeof entry === 'number' &&
-        Array.isArray(item.tiers)
-      ) {
-        const applicableTier =
-          item.tiers.find((tier) => entry <= Number(tier.maxValue)) ||
-          item.tiers[item.tiers.length - 1];
-        const rate = applicableTier?.rate ?? 1;
-        selectedOptionWeight = itemWeight * rate;
-      } else if (entry !== undefined) {
-        selectedOptionWeight = itemWeight;
+      if (type === 'select' && entry) {
+        selectedOptionWeight = calculateSelectWeight(entry, options, itemWeight, dataSource);
+      } else if (type === 'group' && Array.isArray(entry)) {
+        selectedOptionWeight = calculateGroupWeight(entry, subItems, itemWeight);
+      } else if (subType === 'scale' && typeof entry === 'number' && Array.isArray(tiers)) {
+        selectedOptionWeight = calculateScaleWeight(entry, tiers, itemWeight);
       }
 
       return {
@@ -296,6 +267,39 @@ function evaluateSection(section: Section) {
     },
     { total: 0, weight: 0 },
   );
+}
+
+function calculateSelectWeight(
+  entry: any,
+  options: Option[],
+  itemWeight: number,
+  dataSource: string,
+) {
+  if (dataSource === 'options') {
+    const selectedOption = options?.find((option) => option.value === entry);
+    return selectedOption?.weight ?? itemWeight;
+  }
+  return itemWeight;
+}
+
+function calculateGroupWeight(entry: any[], subItems: Item[], itemWeight: number) {
+  const isStringArray = entry.every((item) => typeof item === 'string');
+  const selectedSubItems = isStringArray
+    ? subItems?.filter((subItem) => entry.includes(subItem.name))
+    : subItems.slice(0, entry.length);
+
+  const selectedOptionWeight = selectedSubItems
+    ? selectedSubItems.reduce((sum, selectedSubItem) => sum + (selectedSubItem?.weight ?? 0), 0)
+    : 0;
+
+  return selectedOptionWeight === 0 && entry.length > 0 ? itemWeight : selectedOptionWeight;
+}
+
+function calculateScaleWeight(entry: number, tiers: Tier[], itemWeight: number) {
+  const applicableTier =
+    tiers.find((tier) => entry <= Number(tier.maxValue)) || tiers[tiers.length - 1];
+  const rate = applicableTier?.rate ?? 1;
+  return itemWeight * rate;
 }
 
 export function evaluateCondition(condition?: Condition, formState?: Record<string, any>) {

@@ -4,7 +4,7 @@ export interface Validation {
   maxLength?: number;
   min?: number;
   max?: number;
-  pattern?: RegExp;
+  pattern?: string;
   allowedValues?: string[];
   /**
    * @deprecated Use accept instead
