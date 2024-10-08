@@ -73,6 +73,8 @@ export function compose(
       throw new Error(`Section "${section.name}" not found`);
     }
 
+    combinedSection.comment = resultSection.comment;
+
     const formData: Record<string, any> = resultSection.items.reduce((acc, item) => {
       acc[item.name] = item.entry;
       if (item?.subItems) {
