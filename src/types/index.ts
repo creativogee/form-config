@@ -229,6 +229,14 @@ export declare function getChangeGroup({
 export declare function prepare(formState: Record<string, any>, config: Config): Config;
 
 /**
+ *
+ * @param config The form layout configuration
+ * @returns A record of field names and default values
+ * @description The unprepare function takes a prepared form layout configuration and returns a record of field names and default values. The default value is the entry value of the field. The unprepare function is useful for converting a prepared form layout configuration back to a record of field names and default values.
+ */
+export declare function unprepare(config: Config): Record<string, any>;
+
+/**
  * Translates the labels in the given configuration using the provided translation function.
  *
  * @param config - The configuration object containing sections and items, each with a label to be translated.

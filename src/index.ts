@@ -202,9 +202,12 @@ export function decompose(
 }
 
 export function evaluate(config: Config, factor = 100): Config {
+  // extract the form state from the config
+  const formState = unprepare(config);
+
   // Evaluate section
   const sectionAnalysis = config.sections.map((section) => {
-    const { total, weight } = evaluateSection(section);
+    const { total, weight } = evaluateSection(section, formState);
 
     // Calculate section ratio
     const ratio = weight ? (total / weight) * factor : 0;
@@ -239,7 +242,7 @@ export function evaluate(config: Config, factor = 100): Config {
   };
 }
 
-function evaluateSection(section: Section) {
+function evaluateSection(section: Section, formState: Record<string, any>) {
   return section.items.reduce(
     (acc, item) => {
       const {
@@ -251,15 +254,38 @@ function evaluateSection(section: Section) {
         subItems,
         tiers,
         dataSource,
+        conditions,
       } = item;
+
       let selectedOptionWeight = 0;
 
-      if (type === 'select' && entry) {
-        selectedOptionWeight = calculateSelectWeight(entry, options, itemWeight, dataSource);
-      } else if (type === 'group' && Array.isArray(entry)) {
-        selectedOptionWeight = calculateGroupWeight(entry, subItems, itemWeight);
-      } else if (subType === 'scale' && typeof entry === 'number' && Array.isArray(tiers)) {
-        selectedOptionWeight = calculateScaleWeight(entry, tiers, itemWeight);
+      if (conditions?.show && !checkCondition(conditions.show, formState)) {
+        return acc;
+      }
+
+      switch (type) {
+        case 'select':
+          selectedOptionWeight = calculateSelectWeight(entry, options, itemWeight, dataSource);
+          break;
+        case 'group':
+          selectedOptionWeight = calculateGroupWeight(entry, subItems, itemWeight);
+          break;
+        case 'number':
+          {
+            const isTier = subType === 'scale' && typeof entry === 'number' && Array.isArray(tiers);
+
+            if (isTier) {
+              selectedOptionWeight = calculateScaleWeight(entry, tiers, itemWeight);
+            }
+
+            if (!isTier) {
+              selectedOptionWeight = calculateOtherWeight(entry, itemWeight);
+            }
+          }
+          break;
+        default:
+          selectedOptionWeight = calculateOtherWeight(entry, itemWeight);
+          break;
       }
 
       return {
@@ -277,14 +303,19 @@ function calculateSelectWeight(
   itemWeight: number,
   dataSource: string,
 ) {
+  if (!entry) return 0;
+
   if (dataSource === 'options') {
-    const selectedOption = options?.find((option) => option.value === entry);
-    return selectedOption?.weight ?? itemWeight;
+    const found = options?.find((option) => option.value == entry);
+    return found ? itemWeight : 0;
   }
+
   return itemWeight;
 }
 
-function calculateGroupWeight(entry: any[], subItems: Item[], itemWeight: number) {
+function calculateGroupWeight(entry: any, subItems: Item[], itemWeight: number) {
+  if (!Array.isArray(entry)) return 0;
+
   const isStringArray = entry.every((item) => typeof item === 'string');
   const selectedSubItems = isStringArray
     ? subItems?.filter((subItem) => entry.includes(subItem.name))
@@ -302,6 +333,12 @@ function calculateScaleWeight(entry: number, tiers: Tier[], itemWeight: number) 
     tiers.find((tier) => entry <= Number(tier.maxValue)) || tiers[tiers.length - 1];
   const rate = applicableTier?.rate ?? 1;
   return itemWeight * rate;
+}
+
+function calculateOtherWeight(entry: any, itemWeight: number) {
+  if (!entry) return 0;
+
+  return itemWeight;
 }
 
 export function evaluateCondition(condition?: Condition, formState?: Record<string, any>) {
@@ -473,6 +510,20 @@ export function prepare(formState: Record<string, any>, config: Config): Config 
       }),
     })),
   };
+}
+
+export function unprepare(config: Config): Record<string, any> {
+  return config.sections.reduce((acc, section) => {
+    section.items.forEach((item) => {
+      acc[item.name] = item.entry;
+      if (item?.subItems) {
+        item.subItems.forEach((subItem) => {
+          acc[subItem.name] = subItem.entry;
+        });
+      }
+    });
+    return acc;
+  }, {});
 }
 
 export function translate(config: Config, t: (key: string) => string): Config {
