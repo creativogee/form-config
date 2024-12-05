@@ -120,7 +120,7 @@ export interface Section<T = Item> {
   total?: number;
   ratio?: number;
   comment?: string;
-  items: T[];
+  items?: T[];
   subSections?: Section<T>[];
 }
 
