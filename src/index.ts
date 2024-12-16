@@ -265,6 +265,7 @@ function evaluateSection(section: Section, formState: Record<string, any>) {
 
       switch (type) {
         case 'select':
+        case 'radio':
           selectedOptionWeight = calculateSelectWeight(entry, options, itemWeight, dataSource);
           break;
         case 'group':
@@ -307,7 +308,8 @@ function calculateSelectWeight(
 
   if (dataSource === 'options') {
     const found = options?.find((option) => option.value == entry);
-    return found ? itemWeight : 0;
+    const weight = found ? found?.weight ?? itemWeight : 0;
+    return weight;
   }
 
   return itemWeight;
