@@ -374,10 +374,10 @@ export function checkCondition(condition: Condition, formState: Record<string, a
   return false;
 }
 
-export function stage(config?: Config<Section<Item>>): Record<string, any> {
-  if (!config) return {};
+export function stage<T extends Record<string, any>>(config?: Config<Section<Item>>) {
+  if (!config) return {} as T;
 
-  return config.sections.reduce((acc, section) => {
+  const defaultValues = config.sections.reduce((acc, section) => {
     section.items.forEach((item) => {
       if ((item.type === 'group' && !/list/i.test(item?.subType)) || item.type === 'file') {
         return;
@@ -399,6 +399,8 @@ export function stage(config?: Config<Section<Item>>): Record<string, any> {
     });
     return acc;
   }, {});
+
+  return defaultValues as T;
 }
 
 function deepEqual(obj1: any, obj2: any): boolean {
@@ -501,7 +503,7 @@ export function prepare(formState: Record<string, any>, config: Config): Config 
       name: section.name,
       items: section.items.map((item) => {
         const preparedItem: Partial<Item> = { name: item.name };
-        if (formState.hasOwnProperty(item.name)) {
+        if (formState.hasOwnProperty(item.name) && formState[item.name] !== '') {
           preparedItem.entry = formState[item.name];
         }
         if (item?.comment) preparedItem.comment = item.comment;
@@ -515,10 +517,14 @@ export function prepare(formState: Record<string, any>, config: Config): Config 
 export function unprepare(config: Config): Record<string, any> {
   return config.sections.reduce((acc, section) => {
     section.items.forEach((item) => {
-      acc[item.name] = item.entry;
+      if (item.entry !== '') {
+        acc[item.name] = item.entry;
+      }
       if (item?.subItems) {
         item.subItems.forEach((subItem) => {
-          acc[subItem.name] = subItem.entry;
+          if (subItem.entry !== '') {
+            acc[subItem.name] = subItem.entry;
+          }
         });
       }
     });
