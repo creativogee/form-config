@@ -1,5 +1,6 @@
 import {
   ChangeGroupOptions,
+  ComposeOptions,
   Condition,
   Config,
   DecomposeOptions,
@@ -15,8 +16,11 @@ export * from './types/index.js';
 export function compose(
   config: Config,
   sections: Partial<Section<Partial<Item>>>[],
-  options?: { validate?: boolean },
+  options?: ComposeOptions,
 ) {
+  const strict = options?.strict ?? true;
+  const validate = options?.validate ?? false;
+
   const combined: Config = {
     name: config.name,
     label: config.label,
@@ -31,26 +35,19 @@ export function compose(
     return items.map((item) => {
       const resultItem = resultItems.find((resultItem) => resultItem.name === item.name);
 
-      if (!resultItem) {
+      if (strict && !resultItem) {
         throw new Error(`Result missing for field "${item.name}".`);
       }
 
-      if (options?.validate) {
-        validateItem(item, resultItem.entry, formData);
+      if (validate && resultItem) {
+        validateItem(item, resultItem?.entry, formData);
       }
 
       const combinedItem: Item = {
         ...item,
-        entry: resultItem.entry,
+        ...(resultItem && { ...resultItem }),
+        entry: resultItem?.entry ?? item.entry,
       };
-
-      if (resultItem?.comment) {
-        combinedItem.comment = resultItem.comment;
-      }
-
-      if (resultItem?.media) {
-        combinedItem.media = resultItem.media;
-      }
 
       if (item?.subItems && resultItem?.subItems) {
         combinedItem.subItems = processItems(item.subItems, resultItem.subItems, formData);
@@ -69,23 +66,22 @@ export function compose(
 
     const resultSection = sections.find((s) => s.name === section.name);
 
-    if (!resultSection) {
+    if (strict && !resultSection) {
       throw new Error(`Section "${section.name}" not found`);
     }
 
-    combinedSection.comment = resultSection.comment;
+    const formData: Record<string, any> =
+      resultSection?.items?.reduce((acc, item) => {
+        acc[item.name] = item.entry;
+        if (item?.subItems) {
+          item.subItems.forEach((subItem) => {
+            acc[subItem.name] = subItem.entry;
+          });
+        }
+        return acc;
+      }, {}) ?? {};
 
-    const formData: Record<string, any> = resultSection.items.reduce((acc, item) => {
-      acc[item.name] = item.entry;
-      if (item?.subItems) {
-        item.subItems.forEach((subItem) => {
-          acc[subItem.name] = subItem.entry;
-        });
-      }
-      return acc;
-    }, {});
-
-    combinedSection.items = processItems(section.items, resultSection.items, formData);
+    combinedSection.items = processItems(section.items, resultSection?.items ?? [], formData);
 
     combined.sections.push(combinedSection);
   });

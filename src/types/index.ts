@@ -169,6 +169,19 @@ export declare function evaluateCondition(
  */
 export declare function evaluate(config: Config, factor?: number): Config;
 
+export interface ComposeOptions {
+  /**
+   * Indicates if the composed configuration should be validated
+   * @default false
+   */
+  validate?: boolean;
+  /**
+   * Strict composition requiring matching section and item names
+   * @default false
+   */
+  strict?: boolean;
+}
+
 /**
  *
  * @param config  The form layout configuration
@@ -179,7 +192,7 @@ export declare function evaluate(config: Config, factor?: number): Config;
 export declare function compose(
   config: Config,
   sections: Partial<Section<Partial<Item>>>[],
-  options?: { validate?: boolean },
+  options?: ComposeOptions,
 ): Config<Section<Item>>;
 
 /**
