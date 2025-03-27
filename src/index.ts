@@ -304,7 +304,7 @@ function calculateSelectWeight(
 
   if (dataSource === 'options') {
     const found = options?.find((option) => option.value == entry);
-    const weight = found ? found?.weight ?? itemWeight : 0;
+    const weight = found?.weight === undefined ? itemWeight : found.weight;
     return weight;
   }
 
