@@ -98,6 +98,7 @@ export interface Item {
 }
 
 export interface Media {
+  name?: string;
   type: MediaType;
   url: string;
 }
