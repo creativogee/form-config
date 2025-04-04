@@ -63,6 +63,8 @@ export function compose(
     const combinedSection: Section = {
       name: section.name,
       label: section.label,
+      weight: section.weight,
+      comment: section.comment,
       items: [],
     };
 
