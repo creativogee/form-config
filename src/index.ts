@@ -24,6 +24,8 @@ export function compose(
   const combined: Config = {
     name: config.name,
     label: config.label,
+    weight: config.weight,
+    comment: config.comment,
     sections: [],
   };
 
