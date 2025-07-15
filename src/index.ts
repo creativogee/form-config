@@ -59,19 +59,19 @@ export function compose(
     });
   }
 
-  config.sections.forEach((section: Section) => {
+  config.sections.forEach((configSection: Section) => {
     const combinedSection: Section = {
-      name: section.name,
-      label: section.label,
-      weight: section.weight,
-      comment: section.comment,
+      name: configSection.name,
+      label: configSection.label,
+      weight: configSection.weight,
+      comment: configSection.comment,
       items: [],
     };
 
-    const resultSection = sections.find((s) => s.name === section.name);
+    const resultSection = sections.find((s) => s.name === configSection.name);
 
     if (strict && !resultSection) {
-      throw new Error(`Section "${section.name}" not found`);
+      throw new Error(`Section "${configSection.name}" not found`);
     }
 
     const formData: Record<string, any> =
@@ -85,7 +85,7 @@ export function compose(
         return acc;
       }, {}) ?? {};
 
-    combinedSection.items = processItems(section.items, resultSection?.items ?? [], formData);
+    combinedSection.items = processItems(configSection.items, resultSection?.items ?? [], formData);
 
     combined.sections.push(combinedSection);
   });

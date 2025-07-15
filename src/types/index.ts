@@ -72,7 +72,7 @@ export interface Item {
   // the below fields are to be decomposed before storage
   //
   tabIndex?: number;
-  label: string;
+  label?: string;
   value?: any;
   description?: string;
   devNote?: string;
@@ -121,6 +121,7 @@ export interface Section<T = Item> {
   total?: number;
   ratio?: number;
   comment?: string;
+  style?: string;
   items?: T[];
   subSections?: Section<T>[];
 }
