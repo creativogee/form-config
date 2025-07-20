@@ -234,6 +234,43 @@ export default Form;
 
 - **Zod**: A TypeScript-first schema declaration and validation library. Use Zod to define your form schema and validate your form data. [Learn more](https://github.com/colinhacks/zod)
 
+## 🤝 Contributing
+
+We welcome contributions from the community! Please read our [Contributing Guide](CONTRIBUTING.md) to get started.
+
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/creativogee/form-config.git
+cd form-config
+
+# Install dependencies
+npm install
+
+# Run tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Build the package
+npm run build
+```
+
+### Running Tests
+
+Our comprehensive test suite includes:
+- 82+ unit tests with 87% coverage
+- Type safety validation
+- Integration tests for all core functions
+
+```bash
+npm test              # Run all tests
+npm run test:watch    # Run tests in watch mode
+npm run test:coverage # Generate coverage report
+```
+
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
