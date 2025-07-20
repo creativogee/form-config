@@ -615,42 +615,76 @@ export function prepare(
   formState: Record<string, Entry>,
   config: Config,
 ): Config {
+  const prepareItem = (item: Item) => {
+    const preparedItem: Partial<Item> = { name: item.name }
+    if (formState.hasOwnProperty(item.name) && formState[item.name] !== "") {
+      preparedItem.entry = formState[item.name]
+    }
+    if (item.comment !== undefined) preparedItem.comment = item.comment
+    if (item.media !== undefined) preparedItem.media = item.media
+    return preparedItem as Item
+  }
+
+  const prepareSubSection = (subSection: Section) => {
+    return {
+      ...subSection,
+      items: subSection?.items?.map(prepareItem) || [],
+    }
+  }
+
+  const prepareSection = (section: Section) => {
+    return {
+      ...section,
+      items: section?.items?.map(prepareItem) || [],
+      subSections: section?.subSections?.map(prepareSubSection) || [],
+    }
+  }
+
   return {
     ...config,
-    sections: config.sections.map((section) => ({
-      name: section.name,
-      items: section.items.map((item) => {
-        const preparedItem: Partial<Item> = { name: item.name }
-        if (
-          formState.hasOwnProperty(item.name) &&
-          formState[item.name] !== ""
-        ) {
-          preparedItem.entry = formState[item.name]
-        }
-        if (item?.comment) preparedItem.comment = item.comment
-        if (item?.media) preparedItem.media = item.media
-        return preparedItem as Item
-      }),
-    })),
+    sections: config.sections.map((section) => prepareSection(section)),
   }
 }
 
 export function unprepare(config: Config): Record<string, Entry> {
-  return config.sections.reduce((acc, section) => {
-    section.items.forEach((item) => {
-      if (item.entry !== "") {
-        acc[item.name] = item.entry
-      }
-      if (item?.subItems) {
-        item.subItems.forEach((subItem) => {
-          if (subItem.entry !== "") {
-            acc[subItem.name] = subItem.entry
-          }
-        })
-      }
+  const unprepareItem = (item: Item, acc: Record<string, Entry>) => {
+    if (item.entry !== undefined && item.entry !== "") {
+      acc[item.name] = item.entry
+    }
+    if (item?.subItems) {
+      item.subItems.forEach((subItem) => {
+        if (subItem.entry !== undefined && subItem.entry !== "") {
+          acc[subItem.name] = subItem.entry
+        }
+      })
+    }
+  }
+
+  const unprepareSubSection = (
+    subSection: Section,
+    acc: Record<string, Entry>,
+  ) => {
+    subSection?.items?.forEach((item) => {
+      unprepareItem(item, acc)
     })
-    return acc
-  }, {})
+  }
+
+  const unprepareSection = (section: Section, acc: Record<string, Entry>) => {
+    section?.items?.forEach((item) => {
+      unprepareItem(item, acc)
+    })
+    section?.subSections?.forEach((subSection) => {
+      unprepareSubSection(subSection, acc)
+    })
+  }
+
+  return config.sections.reduce(
+    (acc, section) => {
+      unprepareSection(section, acc)
+      return acc
+    },
+    {} as Record<string, Entry>,
+  )
 }
 
 export function translate(config: Config, t: (key: string) => string): Config {
