@@ -1,0 +1,10 @@
+# Default reviewers for all files
+* @creativogee
+
+# Dependency updates (package.json, package-lock.json, etc.)
+package*.json @creativogee
+yarn.lock @creativogee
+pnpm-lock.yaml @creativogee
+
+# GitHub Actions workflows
+.github/workflows/ @creativogee
