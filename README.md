@@ -5,6 +5,8 @@
 <p align="center">
   <a href="https://www.npmjs.com/package/@crudmates/form-config"><img alt="NPM version" src="https://img.shields.io/npm/v/@crudmates/form-config.svg"></a>
   <a href="https://www.npmjs.com/package/@crudmates/form-config"><img alt="NPM downloads" src="https://img.shields.io/npm/dw/@crudmates/form-config.svg"></a>
+  <a href="https://github.com/creativogee/form-config/actions/workflows/ci.yml"><img alt="CI Status" src="https://github.com/creativogee/form-config/actions/workflows/ci.yml/badge.svg"></a>
+  <img alt="Test Coverage" src="https://img.shields.io/badge/coverage-87%25-brightgreen">
   <a href="https://www.paypal.com/donate?hosted_button_id=Z9NGDEGSC3LPY" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"></a>
 </p>
 

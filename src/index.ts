@@ -9,9 +9,9 @@ import {
   Option,
   Section,
   Tier,
-} from './types/index.js';
+} from './types/index';
 
-export * from './types/index.js';
+export * from './types/index';
 
 export function compose(
   config: Config,
@@ -169,7 +169,7 @@ export function decompose(
       ...section,
       items: section.items.map((item) => {
         const decomposedItem = Object.fromEntries(
-          Object.entries(item).filter(([key]: [keyof Item, unknown]) => allow.includes(key)),
+          Object.entries(item).filter(([key]) => allow.includes(key as keyof Item)),
         ) as Partial<Item>;
 
         // Populate the value field if 'value' is truthy

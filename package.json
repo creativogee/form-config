@@ -1,6 +1,6 @@
 {
   "name": "@crudmates/form-config",
-  "version": "0.0.27",
+  "version": "0.0.28",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.esm.js",
   "types": "./src/types",
@@ -18,7 +18,10 @@
   "scripts": {
     "build": "rm -rf dist && rollup -c",
     "prepublishOnly": "npm run build",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "keywords": [
     "form",
@@ -28,12 +31,15 @@
   ],
   "homepage": "https://github.com/creativogee/form-config#readme",
   "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.0.4",
     "rollup": "^2.79.1",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.36.0",
+    "ts-jest": "^29.4.0",
     "typescript": "^5.1.3"
   },
   "dependencies": {
