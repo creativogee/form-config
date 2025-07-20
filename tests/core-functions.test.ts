@@ -581,6 +581,55 @@ describe("Core Functions", () => {
         subItem1: "sub value 1",
       })
     })
+
+    it("should handle subsections convert config back to form state", () => {
+      const configWithSubsections: Config = {
+        name: "testFormWithSubsections",
+        label: "Test Form With Subsections",
+        sections: [
+          {
+            name: "mainSection",
+            label: "Main Section",
+            items: [{ name: "mainField", type: "text" }],
+            subSections: [
+              {
+                name: "subSection1",
+                label: "Sub Section 1",
+                items: [
+                  { name: "subField1", type: "number" },
+                  { name: "subField2", type: "text" },
+                ],
+              },
+            ],
+          },
+        ],
+      }
+
+      const formState = {
+        mainField: "main value",
+        subField1: 42,
+        subField2: "sub value",
+      }
+
+      // Prepare config with formState
+      const prepared = prepare(formState, configWithSubsections)
+      // Unprepare to get formState back
+      const formStateUnprepared = unprepare(prepared)
+
+      expect(prepared.sections[0].items?.[0]).toEqual({
+        name: "mainField",
+        entry: "main value",
+      })
+      expect(prepared.sections[0].subSections?.[0].items?.[0]).toEqual({
+        name: "subField1",
+        entry: 42,
+      })
+      expect(prepared.sections[0].subSections?.[0].items?.[1]).toEqual({
+        name: "subField2",
+        entry: "sub value",
+      })
+      expect(formStateUnprepared).toEqual(formState)
+    })
   })
 
   describe("translate", () => {
