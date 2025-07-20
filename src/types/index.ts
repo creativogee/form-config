@@ -1,149 +1,149 @@
 export interface Validation {
-  required?: boolean;
-  minLength?: number;
-  maxLength?: number;
-  min?: number;
-  max?: number;
-  pattern?: string;
-  allowedValues?: string[];
+  required?: boolean
+  minLength?: number
+  maxLength?: number
+  min?: number
+  max?: number
+  pattern?: string
+  allowedValues?: string[]
   /**
    * @deprecated Use accept instead
    */
-  allowedExtensions?: string[];
-  accept?: string;
+  allowedExtensions?: string[]
+  accept?: string
 }
 
 export interface Option {
-  upvote?: boolean;
-  downvote?: boolean;
-  novote?: boolean;
-  id?: string;
-  value: string;
-  label: string;
-  weight?: number;
+  upvote?: boolean
+  downvote?: boolean
+  novote?: boolean
+  id?: string
+  value: string
+  label: string
+  weight?: number
 }
 
-export type Entry = string | number | string[];
+export type Entry = string | number | boolean | string[]
 
 export interface Tier {
-  maxValue: string;
-  rate: number;
+  maxValue: string
+  rate: number
 }
 
 export type ItemType =
-  | 'text'
-  | 'number'
-  | 'password'
-  | 'select'
-  | 'date'
-  | 'checkbox'
-  | 'radio'
-  | 'email'
-  | 'tel'
-  | 'url'
-  | 'hidden'
-  | 'file'
-  | 'button'
-  | 'color'
-  | 'datetime-local'
-  | 'image'
-  | 'month'
-  | 'range'
-  | 'reset'
-  | 'search'
-  | 'submit'
-  | 'time'
-  | 'week'
-  | 'textarea'
-  | 'group';
+  | "text"
+  | "number"
+  | "password"
+  | "select"
+  | "date"
+  | "checkbox"
+  | "radio"
+  | "email"
+  | "tel"
+  | "url"
+  | "hidden"
+  | "file"
+  | "button"
+  | "color"
+  | "datetime-local"
+  | "image"
+  | "month"
+  | "range"
+  | "reset"
+  | "search"
+  | "submit"
+  | "time"
+  | "week"
+  | "textarea"
+  | "group"
 
-export type MediaType = 'image' | 'video' | 'audio';
+export type MediaType = "image" | "video" | "audio"
 
-export type ConditionOperator = 'EQUAL' | 'NOT_EQUAL' | 'EMPTY' | 'NOT_EMPTY';
+export type ConditionOperator = "EQUAL" | "NOT_EQUAL" | "EMPTY" | "NOT_EMPTY"
 
-export type DataSource = 'options' | 'url' | 'arbitrary';
+export type DataSource = "options" | "url" | "arbitrary"
 
 export interface Item {
-  name: string; // must be unique
-  entry?: Entry;
-  comment?: string;
-  media?: Media[];
+  name: string // must be unique
+  entry?: Entry
+  comment?: string
+  media?: Media[]
   //
   // the below fields are to be decomposed before storage
   //
-  tabIndex?: number;
-  label?: string;
-  value?: any;
-  description?: string;
-  devNote?: string;
-  placeholder?: string;
-  type: ItemType;
-  subType?: string;
-  weight?: number;
-  tiers?: Tier[];
-  default?: string | number | boolean | string[];
-  style?: string;
-  disabled?: boolean;
-  hidden?: boolean;
+  tabIndex?: number
+  label?: string
+  value?: Entry
+  description?: string
+  devNote?: string
+  placeholder?: string
+  type: ItemType
+  subType?: string
+  weight?: number
+  tiers?: Tier[]
+  default?: string | number | boolean | string[]
+  style?: string
+  disabled?: boolean
+  hidden?: boolean
   conditions?: {
-    enable?: Condition;
-    show?: Condition;
-  };
-  dataSource?: DataSource;
-  url?: string;
-  template?: string;
-  validation?: Validation;
-  options?: Option[];
-  subItems?: Item[];
+    enable?: Condition
+    show?: Condition
+  }
+  dataSource?: DataSource
+  url?: string
+  template?: string
+  validation?: Validation
+  options?: Option[]
+  subItems?: Item[]
 }
 
 export interface Media {
-  name?: string;
-  type: MediaType;
-  url: string;
+  name?: string
+  type: MediaType
+  url: string
 }
 
 export interface MixedCondition {
-  and?: Condition[];
-  or?: Condition[];
+  and?: Condition[]
+  or?: Condition[]
 }
 
 export interface Condition extends MixedCondition {
-  field?: string;
-  operator?: ConditionOperator;
-  value?: string;
+  field?: string
+  operator?: ConditionOperator
+  value?: string
 }
 
 export interface Section<T = Item> {
-  name: string;
-  label?: string;
-  weight?: number;
-  total?: number;
-  ratio?: number;
-  comment?: string;
-  style?: string;
-  items?: T[];
-  subSections?: Section<T>[];
+  name: string
+  label?: string
+  weight?: number
+  total?: number
+  ratio?: number
+  comment?: string
+  style?: string
+  items?: T[]
+  subSections?: Section<T>[]
 }
 
 export interface Config<T = Section<Item>> {
-  name: string;
-  label: string;
-  weight?: number;
-  total?: number;
-  ratio?: number;
-  comment?: string;
-  sections: T[];
+  name: string
+  label: string
+  weight?: number
+  total?: number
+  ratio?: number
+  comment?: string
+  sections: T[]
 }
 
 export interface DecomposeOptions {
-  allow?: Array<keyof Item>;
+  allow?: Array<keyof Item>
 }
 
 export interface ChangeGroupOptions {
-  item: Item;
-  group: Record<string, string[]>;
-  setGroup: (group: Record<string, any[]>) => void;
+  item: Item
+  group: Record<string, (Entry | object)[]>
+  setGroup: (group: Record<string, (Entry | object)[]>) => void
 }
 
 /**
@@ -154,13 +154,13 @@ export interface ChangeGroupOptions {
  */
 export declare function evaluateCondition(
   condition?: Condition,
-  formState?: Record<string, any>,
+  formState?: Record<string, Entry>,
 ):
   | boolean
   | {
-      visible?: boolean;
-      disable?: boolean;
-    };
+      visible?: boolean
+      disable?: boolean
+    }
 
 /**
  *
@@ -169,19 +169,19 @@ export declare function evaluateCondition(
  * @returns The form layout configuration with the total and star rating calculated
  * @description The evaluate function calculates the total and star rating for each section in the form layout configuration. The total is calculated by summing the totals of all items in the section. The star rating is calculated by dividing the total by the weight of the section and multiplying it by the factor. The config total and total weight of all sections are also calculated, and the config total star is calculated by dividing the config total by the total weight and multiplying it by the factor. The updated form layout configuration is returned with the total and star rating calculated for each section and the config total and config total star calculated for the entire form.
  */
-export declare function evaluate(config: Config, factor?: number): Config;
+export declare function evaluate(config: Config, factor?: number): Config
 
 export interface ComposeOptions {
   /**
    * Indicates if the composed configuration should be validated
    * @default false
    */
-  validate?: boolean;
+  validate?: boolean
   /**
    * Strict composition requiring matching section and item names
    * @default false
    */
-  strict?: boolean;
+  strict?: boolean
 }
 
 /**
@@ -195,7 +195,7 @@ export declare function compose(
   config: Config,
   sections: Partial<Section<Partial<Item>>>[],
   options?: ComposeOptions,
-): Config<Section<Item>>;
+): Config<Section<Item>>
 
 /**
  *
@@ -207,7 +207,7 @@ export declare function compose(
 export declare function decompose(
   config: Config,
   options?: DecomposeOptions,
-): Partial<Config<Partial<Section<Partial<Item>>>>>;
+): Partial<Config<Partial<Section<Partial<Item>>>>>
 
 /**
  *
@@ -215,14 +215,16 @@ export declare function decompose(
  * @returns A record of field names and default values
  * @description The stage function takes a form layout configuration and returns a record of field names and default values. The default value is the default value of the field if it exists; otherwise, it is an empty string for text fields, an empty array for checkbox fields, or the first option for select fields. The stage function is useful for initializing form state with default values.
  */
-export declare function stage<T extends Record<string, any>>(config?: Config<Section<Item>>): T;
+export declare function stage<T extends Record<string, Entry>>(
+  config?: Config<Section<Item>>,
+): T
 
 /**
  *
  * @param config The form layout configuration
  * @description The validateConfig function validates the form layout configuration. It checks for duplicate section names, item names, and option names. If any duplicates are found, an error message is returned. If no duplicates are found, a success message is returned. It is recommended to validate every new form layout configuration to ensure that it is correct and meets the required standards.
  */
-export declare function validate(config: Config): string;
+export declare function validate(config: Config): string
 
 /**
  *
@@ -232,7 +234,7 @@ export declare function getChangeGroup({
   item,
   group,
   setGroup,
-}: ChangeGroupOptions): (value: string) => void;
+}: ChangeGroupOptions): (value: string) => void
 
 /**
  *
@@ -241,7 +243,10 @@ export declare function getChangeGroup({
  * @returns A prepared Config object with updated entries
  * @description The prepare function takes the current form state and the form layout configuration, and returns a new Config object. This new object includes the entries from the form state for each item that exists in the formState. It also preserves any existing comments and media for the items. The function is particularly useful for processing form data before submission or for preparing a partial update of the configuration.
  */
-export declare function prepare(formState: Record<string, any>, config: Config): Config;
+export declare function prepare(
+  formState: Record<string, Entry>,
+  config: Config,
+): Config
 
 /**
  *
@@ -249,7 +254,7 @@ export declare function prepare(formState: Record<string, any>, config: Config):
  * @returns A record of field names and default values
  * @description The unprepare function takes a prepared form layout configuration and returns a record of field names and default values. The default value is the entry value of the field. The unprepare function is useful for converting a prepared form layout configuration back to a record of field names and default values.
  */
-export declare function unprepare(config: Config): Record<string, any>;
+export declare function unprepare(config: Config): Record<string, Entry>
 
 /**
  * Translates the labels in the given configuration using the provided translation function.
@@ -258,11 +263,14 @@ export declare function unprepare(config: Config): Record<string, any>;
  * @param t - A translation function that takes a key (string) and returns the translated string (string).
  * @returns A new configuration object with all labels translated.
  */
-export declare function translate(config: Config, t: (key: string) => string): Config;
+export declare function translate(
+  config: Config,
+  t: (key: string) => string,
+): Config
 
 /**
  *  Converts the given configuration object to a string.
  * @param config - The configuration object to be converted to a string.
  * @param depth - The depth of the configuration object to be converted to a string.
  */
-export declare function stringify(config: Config, depth?: number): string;
+export declare function stringify(config: Config, depth?: number): string
