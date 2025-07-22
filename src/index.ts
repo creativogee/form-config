@@ -30,11 +30,11 @@ export function compose(
   }
 
   function processItems(
-    items: Item[],
+    items: Item[] | undefined,
     resultItems: Partial<Item>[],
     formData: Record<string, Entry>,
   ): Item[] {
-    return items.map((item) => {
+    return (items ?? []).map((item) => {
       const resultItem = resultItems.find(
         (resultItem) => resultItem.name === item.name,
       )
@@ -65,47 +65,65 @@ export function compose(
     })
   }
 
-  config.sections.forEach((configSection: Section) => {
-    const combinedSection: Section = {
-      name: configSection.name,
-      label: configSection.label,
-      weight: configSection.weight,
-      comment: configSection.comment,
-      items: [],
-    }
-
-    const resultSection = sections.find((s) => s.name === configSection.name)
-
-    if (strict && !resultSection) {
-      throw new Error(`Section "${configSection.name}" not found`)
-    }
-
-    const formData: Record<string, Entry> =
-      resultSection?.items?.reduce(
-        (acc, item) => {
-          if (item.entry !== undefined) {
-            acc[item.name] = item.entry
+  function processSections(
+    configSections: Section[],
+    resultSections: Partial<Section<Partial<Item>>>[] = [],
+    parentFormData: Record<string, Entry> = {},
+  ): Section[] {
+    return (configSections ?? []).map((configSection) => {
+      const resultSection =
+        resultSections.find((s) => s.name === configSection.name) || {}
+      // Merge formData from parent and this section
+      const formData: Record<string, Entry> = (
+        resultSection?.items as Partial<Item>[] | undefined
+      )?.reduce(
+        (acc: Record<string, Entry>, item: Partial<Item>) => {
+          if (
+            item.entry !== undefined &&
+            (typeof item.entry === "string" ||
+              typeof item.entry === "number" ||
+              typeof item.entry === "boolean" ||
+              Array.isArray(item.entry))
+          ) {
+            acc[item.name as string] = item.entry
           }
           if (item?.subItems) {
             item.subItems.forEach((subItem) => {
-              if (subItem.entry !== undefined) {
-                acc[subItem.name] = subItem.entry
+              if (
+                subItem.entry !== undefined &&
+                (typeof subItem.entry === "string" ||
+                  typeof subItem.entry === "number" ||
+                  typeof subItem.entry === "boolean" ||
+                  Array.isArray(subItem.entry))
+              ) {
+                acc[subItem.name as string] = subItem.entry
               }
             })
           }
           return acc
         },
-        {} as Record<string, Entry>,
-      ) ?? {}
+        { ...parentFormData },
+      ) ?? { ...parentFormData }
 
-    combinedSection.items = processItems(
-      configSection.items,
-      resultSection?.items ?? [],
-      formData,
-    )
+      const combinedSection: Section = {
+        ...configSection,
+        items: processItems(
+          configSection.items,
+          resultSection?.items ?? [],
+          formData,
+        ),
+        // Recursively process subSections
+        subSections: processSections(
+          configSection.subSections ?? [],
+          resultSection?.subSections ?? [],
+          formData,
+        ),
+      }
+      return combinedSection
+    })
+  }
 
-    combined.sections.push(combinedSection)
-  })
+  combined.sections = processSections(config.sections, sections)
 
   return combined
 }
@@ -288,7 +306,8 @@ export function evaluate(config: Config, factor = 100): Config {
 }
 
 function evaluateSection(section: Section, formState: Record<string, Entry>) {
-  return section.items.reduce(
+  // Evaluate items in this section
+  const itemResult = (section.items ?? []).reduce(
     (acc, item) => {
       const {
         entry = item.default,
@@ -357,6 +376,24 @@ function evaluateSection(section: Section, formState: Record<string, Entry>) {
     },
     { total: 0, weight: 0 },
   )
+
+  // Recursively evaluate subSections
+  const subSectionResults = (section.subSections ?? []).map((subSection) =>
+    evaluateSection(subSection, formState),
+  )
+  const subSectionsTotal = subSectionResults.reduce(
+    (sum: number, r: { total: number; weight: number }) => sum + r.total,
+    0,
+  )
+  const subSectionsWeight = subSectionResults.reduce(
+    (sum: number, r: { total: number; weight: number }) => sum + r.weight,
+    0,
+  )
+
+  return {
+    total: itemResult.total + subSectionsTotal,
+    weight: itemResult.weight + subSectionsWeight,
+  }
 }
 
 function calculateSelectWeight(

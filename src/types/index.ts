@@ -120,6 +120,7 @@ export interface Section<T = Item> {
   weight?: number
   total?: number
   ratio?: number
+  hidden?: boolean
   comment?: string
   style?: string
   items?: T[]
