@@ -123,6 +123,18 @@ export function compose(
     })
   }
 
+  // Check for missing sections in strict mode
+  if (strict) {
+    for (const resultSection of sections) {
+      const configSection = config.sections.find(
+        (s) => s.name === resultSection.name,
+      )
+      if (!configSection) {
+        throw new Error(`Section "${resultSection.name}" not found`)
+      }
+    }
+  }
+
   combined.sections = processSections(config.sections, sections)
 
   return combined

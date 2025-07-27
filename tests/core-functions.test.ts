@@ -90,7 +90,7 @@ describe("Core Functions", () => {
       ]
 
       expect(() => compose(mockConfig, sections, { strict: true })).toThrow(
-        'Section "section1" not found',
+        'Section "nonexistent" not found',
       )
     })
 
