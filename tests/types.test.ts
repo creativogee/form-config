@@ -1,20 +1,20 @@
 import {
-  Config,
-  Section,
-  Item,
-  Option,
-  Validation,
-  Condition,
-  Entry,
-  ItemType,
-  MediaType,
-  ConditionOperator,
-  DataSource,
-  Media,
-  Tier,
-  DecomposeOptions,
   ChangeGroupOptions,
   ComposeOptions,
+  Condition,
+  ConditionOperator,
+  Config,
+  DataSource,
+  DecomposeOptions,
+  Entry,
+  Item,
+  ItemType,
+  Media,
+  MediaType,
+  Option,
+  Section,
+  Tier,
+  Validation,
 } from "../src/types/index"
 
 describe("Type Definitions", () => {
@@ -264,12 +264,63 @@ describe("Type Definitions", () => {
   })
 
   describe("Options Interfaces", () => {
-    it("should create valid DecomposeOptions interface", () => {
+    it("should create valid DecomposeOptions interface with allow parameter (deprecated)", () => {
+      // The allow parameter is marked as deprecated in favor of mask
       const options: DecomposeOptions = {
         allow: ["name", "entry", "value"],
       }
 
       expect(options.allow).toEqual(["name", "entry", "value"])
+    })
+
+    it("should create valid DecomposeOptions interface with mask parameter", () => {
+      const options: DecomposeOptions = {
+        mask: { sections: [{ items: [{ name: "field1" }] }] },
+      }
+
+      expect(options.mask).toEqual({
+        sections: [{ items: [{ name: "field1" }] }],
+      })
+    })
+
+    it("should create valid DecomposeOptions interface with both allow and mask parameters", () => {
+      const options: DecomposeOptions = {
+        allow: ["name", "entry", "value"],
+        mask: { sections: [{ items: [{ name: "field1" }] }] },
+      }
+
+      expect(options.allow).toEqual(["name", "entry", "value"])
+      expect(options.mask).toEqual({
+        sections: [{ items: [{ name: "field1" }] }],
+      })
+    })
+
+    it("should allow empty mask parameter", () => {
+      const options: DecomposeOptions = {
+        mask: {},
+      }
+
+      expect(options.mask).toEqual({})
+    })
+
+    it("should allow complex mask parameter", () => {
+      const complexMask = {
+        sections: [
+          {
+            items: [
+              { name: "field1", entry: "value1" },
+              { name: "field2", entry: "value2" },
+            ],
+          },
+        ],
+        metadata: { version: "1.0" },
+      }
+
+      const options: DecomposeOptions = {
+        mask: complexMask,
+      }
+
+      expect(options.mask).toEqual(complexMask)
     })
 
     it("should create valid ComposeOptions interface", () => {

@@ -138,7 +138,14 @@ export interface Config<T = Section<Item>> {
 }
 
 export interface DecomposeOptions {
+  /**
+   * @deprecated Use mask instead
+   */
   allow?: Array<keyof Item>
+  /**
+   * @description See docs https://github.com/creativogee/masq#readme
+   */
+  mask?: Record<string, unknown>
 }
 
 export interface ChangeGroupOptions {

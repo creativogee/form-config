@@ -1,3 +1,4 @@
+import { applyMask } from "@crudmates/masq"
 import {
   ChangeGroupOptions,
   ComposeOptions,
@@ -232,7 +233,11 @@ export function decompose(
   config: Config,
   options?: DecomposeOptions,
 ): Partial<Config<Partial<Section<Partial<Item>>>>> {
-  const { allow = ["name", "entry"] } = options ?? {}
+  const { allow = ["name", "entry"], mask } = options ?? {}
+
+  if (mask) {
+    return applyMask(config, mask)
+  }
 
   return {
     ...config,
@@ -276,6 +281,9 @@ export function decompose(
   }
 }
 
+/**
+ * @description Advised to implement custom evaluate function instead for flexibility
+ */
 export function evaluate(config: Config, factor = 100): Config {
   // extract the form state from the config
   const formState = unprepare(config)
@@ -575,6 +583,9 @@ function deepEqual(obj1: unknown, obj2: unknown): boolean {
   return true
 }
 
+/**
+ * @deprecated
+ */
 export const getChangeGroup =
   ({ item, group, setGroup }: ChangeGroupOptions) =>
   (value: Entry | object) => {

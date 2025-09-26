@@ -17,6 +17,7 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
+    "moduleResolution": "bundler"
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*"]
 }
