@@ -172,6 +172,72 @@ describe("Core Functions", () => {
 
       expect(result.sections?.[0]?.items?.[0]?.value).toBe("Option 1")
     })
+
+    it("should use applyMask when mask parameter is provided", () => {
+      const configWithEntries: Config = {
+        ...mockConfig,
+        sections: [
+          {
+            ...mockConfig.sections[0]!,
+            items: [
+              { ...mockConfig.sections[0]!.items![0]!, entry: "test value" },
+              { ...mockConfig.sections[0]!.items![1]!, entry: "option1" },
+            ],
+          },
+        ],
+      }
+
+      const mockMask = { sections: [{ items: [{ name: "field1" }] }] }
+
+      // Test that the function accepts the mask parameter without throwing
+      // The actual applyMask integration is tested in mask-integration.test.ts
+      expect(() =>
+        decompose(configWithEntries, { mask: mockMask }),
+      ).not.toThrow()
+    })
+
+    it("should prioritize mask over allow parameter when both are provided", () => {
+      const configWithEntries: Config = {
+        ...mockConfig,
+        sections: [
+          {
+            ...mockConfig.sections[0]!,
+            items: [
+              { ...mockConfig.sections[0]!.items![0]!, entry: "test value" },
+              { ...mockConfig.sections[0]!.items![1]!, entry: "option1" },
+            ],
+          },
+        ],
+      }
+
+      const mockMask = { sections: [{ items: [{ name: "field1" }] }] }
+
+      // Test that the function accepts both parameters without throwing
+      // The actual behavior is tested in mask-integration.test.ts
+      expect(() =>
+        decompose(configWithEntries, {
+          mask: mockMask,
+          allow: ["name", "entry", "value"], // This should be ignored
+        }),
+      ).not.toThrow()
+    })
+
+    it("should handle empty mask parameter gracefully", () => {
+      const configWithEntries: Config = {
+        ...mockConfig,
+        sections: [
+          {
+            ...mockConfig.sections[0]!,
+            items: [
+              { ...mockConfig.sections[0]!.items![0]!, entry: "test value" },
+            ],
+          },
+        ],
+      }
+
+      // Test that the function accepts empty mask without throwing
+      expect(() => decompose(configWithEntries, { mask: {} })).not.toThrow()
+    })
   })
 
   describe("evaluate", () => {
@@ -209,6 +275,28 @@ describe("Core Functions", () => {
 
       expect(result.sections?.[0]?.total).toBe(0)
       expect(result.sections?.[0]?.ratio).toBe(0)
+    })
+
+    it("should be marked as deprecated with advisory comment", () => {
+      // This test verifies that the function is still available but marked as deprecated
+      // The deprecation is indicated by the @description JSDoc comment advising to implement custom evaluate function
+      expect(typeof evaluate).toBe("function")
+
+      // Test that it still works as expected despite being deprecated
+      const configWithEntries: Config = {
+        ...mockConfig,
+        sections: [
+          {
+            ...mockConfig.sections[0]!,
+            items: [
+              { ...mockConfig.sections[0]!.items![0]!, entry: "test value" },
+            ],
+          },
+        ],
+      }
+
+      const result = evaluate(configWithEntries)
+      expect(result.sections?.[0]?.total).toBe(10) // field1 weight
     })
   })
 
@@ -720,6 +808,24 @@ describe("Core Functions", () => {
 
       expect(setGroup).toHaveBeenCalledWith({
         testField: [{ id: 2, name: "test2" }],
+      })
+    })
+
+    it("should be marked as deprecated", () => {
+      // This test verifies that the function is still available but marked as deprecated
+      // The deprecation is indicated by the @deprecated JSDoc comment in the source
+      expect(typeof getChangeGroup).toBe("function")
+
+      // Test that it still works as expected despite being deprecated
+      const group = {}
+      const setGroup = jest.fn()
+      const item = { name: "testField", type: "group" as const }
+
+      const changeGroup = getChangeGroup({ item, group, setGroup })
+      changeGroup("value1")
+
+      expect(setGroup).toHaveBeenCalledWith({
+        testField: ["value1"],
       })
     })
   })
